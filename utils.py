@@ -66,9 +66,8 @@ class Slide:
 class LLM:
 
     def __init__(self):
-        # self.tutor_model = ['groq', 'mixtral-8x7b-32768']
         self.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']        
-        self.slide_model = ['openrouter', 'anthropic/claude-3-sonnet'] #'mistralai/mixtral-8x22b-instruct']
+        self.slide_model = ['openrouter', 'anthropic/claude-3-opus']
 
     async def tutor_response(self, instruction, response, message_container):
         if self.tutor_model[0] == 'groq':
