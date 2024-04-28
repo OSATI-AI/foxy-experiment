@@ -91,6 +91,4 @@ def main():
     with ui.row().classes('w-full h-[5%] no-wrap'):
         pass
 
-ui.run(title='Foxy - an experimental AI tutor')
-ui.run(favicon="favicon.ico")
-ui.run(reload='FLY_ALLOC_ID' not in os.environ)
+ui.run(title='Foxy - an experimental AI tutor', favicon="favicon.ico", reload='FLY_ALLOC_ID' not in os.environ)
