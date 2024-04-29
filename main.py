@@ -46,43 +46,59 @@ def main():
         instruction = slide_instruction(chat.dialog, response.answer, slide.content)
         await llm_handler.slide_response(instruction, slide)
 
+        # set visibility right
+        warning.visible = False
+        slide.object.visible = True
+
     ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
     ui.query('.nicegui-content').classes('w-full')
 
     # header
     with ui.row().classes('w-full h-[10%] no-wrap'):
-        with ui.column().classes('w-[3%] h-full no-wrap'):
+        with ui.column().classes('w-0 sm:w-[3%] -ml-6 sm:m-0 h-full no-wrap'):
             pass
 
         with ui.column().classes('w-[97%] h-full no-wrap'):
-            ui.image('media/foxy_header.png').classes('w-[25%]')
+            ui.image('media/foxy_header.png').classes('w-80')
 
     # body
-    with ui.row().classes('w-full h-[75%] no-wrap'):
-        with ui.column().classes('w-[3%] h-full'):
+    with ui.row().classes('w-full h-[75%] flex flex-col sm:flex-row no-wrap'):
+        with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
             pass
 
-        with ui.column().classes('w-[54%] h-full items-center'):
-
+        with ui.column().classes('w-full m-0 sm:w-[54%] h-[50%] sm:h-full items-center'):
             with ui.element('div').classes('flex q-pl-lg items-center bg-white rounded-3xl h-full w-full'):
-                slide.object = ui.markdown('').classes('text-h4')
+                slide.object = ui.markdown('''
+                    ## Hilfe bei Schwierigkeiten mit Mitose
+                    - Gemeinsam herausfinden, wo die Schwierigkeiten liegen
+                    - Schritt für Schritt durch das Thema gehen
+                    - Alles so erklären, dass du es verstehst
+                    ''').classes('text-lg sm:text-4xl')
+                #slide.object.visible = False
 
-        with ui.column().classes('w-[3%] h-full'):
+                # warning = ui.markdown('''🚧 **Experimentelle Demoversion** 🚧<br />
+                #     Bitte beachten Sie, dass dies eine frühe Prototyp-Anwendung ist, die möglicherweise 
+                #     ungenaue Antworten liefert oder Inhalte erzeugt, die nicht für alle Zielgruppen 
+                #     geeignet sind. Wir raten zur Vorsicht und raten Ihnen uns alle Probleme, die Sie 
+                #     feststellen, mitzuteilen.
+                # ''').classes('w-full text-center m-8 lg:m-32')
+
+        with ui.column().classes('w-full sm:w-[3%] h-auto sm:h-full'):
             pass
 
-        with ui.column().classes('w-[37%] h-full'):
-            message_container = ui.scroll_area().classes('shadow-sm bg-white rounded-3xl h-full w-full').style('overflow-y: scroll')
+        with ui.column().classes('w-full sm:w-[37%] h-[50%] sm:h-full'):
+            message_container = ui.scroll_area().classes('shadow-sm bg-white rounded-3xl w-full h-full').style('overflow-y: scroll')
 
-        with ui.column().classes('w-[3%] h-full'):
+        with ui.column().classes('w-full sm:w-[3%] h-auto sm:h-full'):
             pass
 
     # config + input row
-    with ui.row().classes('w-full h-[5%] no-wrap'):
-        with ui.column().classes('w-[60%] h-full'):
+    with ui.row().classes('w-full h-[5%] flex flex-col sm:flex-row no-wrap'):
+        with ui.column().classes('w-0 sm:w-[60%] h-0 sm:h-full'):
             pass
 
-        with ui.column().classes('w-[40%] h-full justify-center'):
-            with ui.row().classes('w-[90%] h-[10%] no-wrap'):
+        with ui.column().classes('w-full sm:w-[40%] -mt-8 sm:mt-0 h-full justify-center'):
+            with ui.row().classes('w-full sm:w-[90%] h-[10%] no-wrap'):
                 placeholder = 'message - do not share personal information!'
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3').props('color=orange-12') \
                     .classes('w-full self-center').on('keydown.enter', send)
