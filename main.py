@@ -73,15 +73,15 @@ def main():
                     - Gemeinsam herausfinden, wo die Schwierigkeiten liegen
                     - Schritt für Schritt durch das Thema gehen
                     - Alles so erklären, dass du es verstehst
-                    ''').classes('text-lg sm:text-4xl')
-                #slide.object.visible = False
+                    ''').classes('text-base sm:text-4xl')
+                slide.object.visible = False
 
-                # warning = ui.markdown('''🚧 **Experimentelle Demoversion** 🚧<br />
-                #     Bitte beachten Sie, dass dies eine frühe Prototyp-Anwendung ist, die möglicherweise 
-                #     ungenaue Antworten liefert oder Inhalte erzeugt, die nicht für alle Zielgruppen 
-                #     geeignet sind. Wir raten zur Vorsicht und raten Ihnen uns alle Probleme, die Sie 
-                #     feststellen, mitzuteilen.
-                # ''').classes('w-full text-center m-8 lg:m-32')
+                warning = ui.markdown('''🚧 **Experimentelle Demoversion** 🚧<br />
+                    Bitte beachten Sie, dass dies eine frühe Prototyp-Anwendung ist, die möglicherweise 
+                    ungenaue Antworten liefert oder Inhalte erzeugt, die nicht für alle Zielgruppen 
+                    geeignet sind. Wir raten zur Vorsicht und raten Ihnen uns alle Probleme, die Sie 
+                    feststellen, mitzuteilen.
+                ''').classes('w-full text-center m-8 lg:m-32')
 
         with ui.column().classes('w-full sm:w-[3%] h-auto sm:h-full'):
             pass
