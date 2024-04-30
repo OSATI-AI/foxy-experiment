@@ -37,6 +37,13 @@ def main():
 
         message_container.scroll_to(percent=100)
 
+        # update memory
+        instruction = chat.get_memory_instruction()
+        memory_updated = await llm_handler.memory_response(instruction)
+        chat.update_memory(memory_updated)
+
+        #print("\n\n MEMORY = ", memory_updated)
+
         # get tutor response
         instruction = chat.get_tutor_instruction()
         await llm_handler.tutor_response(instruction, response, message_container)

@@ -9,14 +9,32 @@ def tutor_persona(language='german'):
         auszudrücken und achtest auf eine einfache Sprache um auf einer Ebene mit dem Schüler zu sein.
         """
 
-def tutor_instruction(response_student, language='german'):
+def memory_instruction(dialog, memory, language='german'):
+    return f"""Es folgt ein Dialog zwischen einem Schüler und einem Tutor sowie eine Liste von Informationen, die bisher bekannt sind.
+        Analysiere den Dialog und gib dann eine aktualisierte Liste an Informationen aus. Das bedeutet: Gehe Schritt für Schritt vor und bewerte für jede 
+        Information, ob diese noch gültig ist. Wenn die Information noch gültig ist, dann übernehme sie wort wörtlich in die neue Liste ohne sie zu ändern. 
+        Wenn die Information nicht mehr gültig ist, übernehme sie NICHT in die neue Liste sondern lasse sie weg. Wenn aus dem Dialog neue Informationen 
+        hervorgehen, die noch nicht in der Liste enthalten sind, dann füge sie zur aktualisierten Liste hinzu. Arebeite nur die relevantesten Informationen
+        aus dem Dialog heraus und NUR die Informationen die den Schüler und seine Aufgaben betreffen. Wenn konkrete Aufgabenstellungen besprochen werden, 
+        dann schreibe die Aufgabenstellung IMMER Wort für Wort ab und fasse sie nicht zusammen und lasse nichts weg. Starte jede Information mit "Der Schüler ...". Hier einige Beispiele:
+        - Der Schüler braucht Hilfe bei seinen Hausaufgaben im Fach Geographie.
+        - Der Schüler kenn den Begriff "Mitochondrium" nicht
+        - Der Schüler muss folgende Aufgabe lösen: "Lies den Text T1. a) Arbeite die Faktoren heraus die zur französischen Revolution geführt haben. b) Beschreibe das Verhalten des Königs"
+        - Der Schüler hat versucht die Gleichung in die Normalform zu bringen. Seine Antwort lautet: "x^2+5x+3=0"
+        - Der Schüler muss folgende Aufgabe lösen: "Berechne die erste Ableitung von folgender Funktion:f(x)=e^x+2x"
+        Es folgt der Dialog und die bisherigen Informationen. Gebe deine Antwort unbedingt IMMER AUF DEUTSCH.
+        DIALOG: {dialog}
+        INFORMATIONEN: {memory}
+        AKTUALISIERTE INFORMATIONEN:"""
+
+def tutor_instruction(response_student, memory, language='german'):
 
     return f"""Übernimm die Rolle des beschriebenen KI-Tutors und formuliere die nächste Antwort des Tutors.
         Versuche kurze, prägnante Sätze zu verwenden und gib immer nur eine Information auf einmal oder stelle eine Frage auf einmal. 
         Gehe Schritt für Schritt vor: 
         ANALYSE: Analysiere den bisherigen Dialog und fasse zusammen was Du über die Situation des Schülers weißt. Beschreibe, was das Ziel des Schülers ist,
         möchte er eine konkrete Aufgabe lösen oder nur ein Thema besser verstehen? Hat er zusätzliche Materialien aus dem Unterricht oder im Buch, die helfen können?
-        SCHÜLER: Analysiere im detail die letzte Antwort des Schülers. Diese lautet: '{response_student}'. Überprüfe ob seine Aussage korrekt ist und und was er mit seiner Antwort aussagen möchte möchte.
+        SCHÜLER: Analysiere im detail die letzte Antwort des Schülers. Diese lautet: "{response_student}". Überprüfe ob seine Aussage korrekt ist und und was er mit seiner Antwort aussagen möchte möchte.
         STRATEGIE: Erläutere, was deine Strategie und dein nächster Schritt als Tutor sein sollte
         INPUT: Wiederhole hier nochmal die letzte Nachticht des Schülers
         TUTOR: Formuliere deinen Antwortsatz
@@ -80,15 +98,15 @@ def tutor_instruction(response_student, language='german'):
         TUTOR: "Klasse! Dann können wir ja jetzt zur eigentlichen Aufgabe zurückkommen. Du sollst ja jetzt anhand des Schaubilds den Prozess beschreiben.
         Fang doch mal mit dem ersten Schritt an. Versuch doch mal einen Satz zu formulieren, der den ersten Schritt beschreibt. "
 
-        Gehe nun Schritt für Schritt vor und orientiere dich an den Beispielen.
-        Formuliere die finale Antwort des Tutors in einfacher und lockerer Sprache um auf einer Ebene mit dem Schüler zu sein. Vermeide Fachbegriffe,
-        die noch nicht erklärt wurden.
-
+        Orientiere dich an den Beispielen und und gehe Schritt für Schritt vor. Hier sind die wichtigsten Informationen über die Situation des Schülers:
+        {memory}
+        Beachte diese Informationen bei deiner Analyse und bei der Formulierung deiner Antwort. Formuliere die finale Antwort des Tutors in einfacher und 
+        lockerer Sprache um auf einer Ebene mit dem Schüler zu sein. Vermeide Fachbegriffe, die noch nicht erklärt wurden. 
         ANALYSE:
         SCHÜLER: 
         STRATEGIE: 
-        INPUT: '{response_student}'
-        TUTOR: 
+        INPUT: "{response_student}"
+        TUTOR:
         """
 
 def slide_instruction(dialog, thoughts_teacher, bullet_points, language='german'):

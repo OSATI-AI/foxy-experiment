@@ -1,6 +1,6 @@
 from langchain_openai import OpenAI, ChatOpenAI
 from langchain_groq import  ChatGroq
-from instructions import tutor_persona, tutor_instruction, slide_instruction
+from instructions import tutor_persona, tutor_instruction, slide_instruction, memory_instruction
 
 from nicegui import ui, context
 import os
@@ -14,6 +14,7 @@ class Chat:
     self.tutor_persona = tutor_persona
     self.last_student_response = None
     self.dialog = ''
+    self.memory = '-Der Schüler braucht Hilfe vom Tutor'
 
   def add_student_response(self, response):
     self.dialog += f'\n S: {response}'
@@ -22,8 +23,14 @@ class Chat:
   def add_teacher_response(self, response):
     self.dialog += f'\n T: {response}'
 
+  def update_memory(self, memory):
+      self.memory = memory
+
   def get_tutor_instruction(self):
-    return f'{self.tutor_persona}\n {self.dialog}\n {tutor_instruction(self.last_student_response)}'
+    return f'{self.tutor_persona}\n {self.dialog}\n {tutor_instruction(self.last_student_response, self.memory)}'
+  
+  def get_memory_instruction(self):
+      return memory_instruction(self.dialog, self.memory)
 
 class Response:
 
@@ -66,8 +73,21 @@ class Slide:
 class LLM:
 
     def __init__(self):
-        self.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']        
+        self.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
+        self.memory_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']        
         self.slide_model = ['openrouter', 'anthropic/claude-3-opus']
+
+
+    async def memory_response(self,instruction):
+        if self.memory_model[0] == 'openrouter':
+            llm = ChatOpenAI(model_name=self.memory_model[1], streaming=True, openai_api_key=OPENROUTER_API_KEY, openai_api_base = 'https://openrouter.ai/api/v1')
+        response = ''
+        
+        # at the moment we are not gaining anything from making this asyny/streamed since we do not display the memory
+        async for chunk in llm.astream(instruction):
+            response += chunk.content
+        
+        return response
 
     async def tutor_response(self, instruction, response, message_container):
         if self.tutor_model[0] == 'groq':
