@@ -15,7 +15,8 @@ def main():
 
     # Set the style for the entire page to change the background color
     ui.query('body').style(f'background-color: #f1efed')
-    context.client.content.classes('h-[100vh]')
+    # context.client.content.classes('h-[100vh]')
+    context.client.content.classes('supports-[height:100cqh]:h-[100cqh] supports-[height:100svh]:h-[100svh]')
 
     async def send() -> None:
         question = text.value
@@ -69,7 +70,7 @@ def main():
             ui.image('media/foxy_header.png').classes('w-80')
 
     # body
-    with ui.row().classes('w-full h-[75%] flex flex-col sm:flex-row no-wrap'):
+    with ui.row().classes('w-full h-[85%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
             pass
 
@@ -104,14 +105,14 @@ def main():
         with ui.column().classes('w-0 sm:w-[60%] h-0 sm:h-full'):
             pass
 
-        with ui.column().classes('w-full sm:w-[40%] -mt-8 sm:mt-0 h-full justify-center'):
+        with ui.column().classes('w-full sm:w-[40%] -mt-4 sm:mt-0 h-full justify-center'):
             with ui.row().classes('w-full sm:w-[90%] h-[10%] no-wrap'):
                 placeholder = 'message - do not share personal information!'
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3').props('color=orange-12') \
                     .classes('w-full self-center').style('font-size: 16px').on('keydown.enter', send)
 
     # footer
-    with ui.row().classes('w-full h-[5%] no-wrap'):
+    with ui.row().classes('w-full h-0 sm:h-0 no-wrap bg-red'):
         pass
 
 ui.run(title='Foxy - an experimental AI tutor', favicon="favicon.ico", reload='FLY_ALLOC_ID' not in os.environ)
