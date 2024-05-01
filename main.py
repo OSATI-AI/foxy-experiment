@@ -108,7 +108,7 @@ def main():
             with ui.row().classes('w-full sm:w-[90%] h-[10%] no-wrap'):
                 placeholder = 'message - do not share personal information!'
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3').props('color=orange-12') \
-                    .classes('w-full self-center').on('keydown.enter', send)
+                    .classes('w-full self-center').style('font-size: 16px').on('keydown.enter', send)
 
     # footer
     with ui.row().classes('w-full h-[5%] no-wrap'):
