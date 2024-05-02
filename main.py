@@ -74,22 +74,23 @@ def main():
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
             pass
 
-        with ui.column().classes('w-full m-0 sm:w-[54%] h-[50%] sm:h-full items-center'):
+        with ui.column().classes('w-full m-0 sm:w-[54%] h-[50%] sm:h-full items-center').style('container-type: inline-size'):
             with ui.element('div').classes('flex q-pl-lg items-center bg-white rounded-3xl h-full w-full'):
                 slide.object = ui.markdown('''
                     ## Hilfe bei Schwierigkeiten mit Mitose
                     - Gemeinsam herausfinden, wo die Schwierigkeiten liegen
                     - Schritt für Schritt durch das Thema gehen
                     - Alles so erklären, dass du es verstehst
-                    ''').classes('text-base sm:text-4xl')
-                slide.object.visible = False
+                    ''').style('font-size: 2.5cqw')
+                slide.object.visible = True
 
                 warning = ui.markdown('''🚧 **Experimentelle Demoversion** 🚧<br />
                     Bitte beachten Sie, dass dies eine frühe Prototyp-Anwendung ist, die möglicherweise 
                     ungenaue Antworten liefert oder Inhalte erzeugt, die nicht für alle Zielgruppen 
                     geeignet sind. Wir raten zur Vorsicht und raten Ihnen uns alle Probleme, die Sie 
                     feststellen, mitzuteilen.
-                ''').classes('w-full text-center m-8 lg:m-32')
+                ''').classes('w-full text-center m-8 lg:m-32').style('font-size: 2.5cqw')
+                warning.visible = False
 
         with ui.column().classes('w-full sm:w-[3%] h-auto sm:h-full'):
             pass
@@ -114,5 +115,10 @@ def main():
     # footer
     with ui.row().classes('w-full h-0 sm:h-0 no-wrap bg-red'):
         pass
+
+    # adjust font size in markdown fields so that it scales with whiteboard width
+    ui.query('h1').style('font-size: 4cqw; font-weight: bold; margin: 0cqw 0;')
+    ui.query('h2').style('font-size: 3.5cqw; font-weight: bold; margin: 0cqw 0;')
+    ui.query('h3').style('font-size: 3cqw; font-weight: bold; margin: 0cqw 0;')
 
 ui.run(title='Foxy - an experimental AI tutor', favicon="favicon.ico", reload='FLY_ALLOC_ID' not in os.environ)
