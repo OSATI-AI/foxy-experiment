@@ -4,9 +4,16 @@ from instructions import tutor_persona, tutor_instruction, slide_instruction, me
 
 from nicegui import ui, context
 import os
+import io
 
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
+
+def dump_chat(yaml, chat):
+    # dump chat into YAML format
+    buf = io.BytesIO()
+    yaml.dump(chat.detailed_dialog, buf)
+    return buf.getvalue()
 
 class Chat:
 
@@ -15,16 +22,20 @@ class Chat:
     self.last_student_response = None
     self.dialog = ''
     self.memory = '-Der Schüler braucht Hilfe vom Tutor'
+    self.detailed_dialog = []
 
   def add_student_response(self, response):
     self.dialog += f'\n S: {response}'
     self.last_student_response = response
+    self.detailed_dialog.append({'S' : response})
 
   def add_teacher_response(self, response):
     self.dialog += f'\n T: {response}'
+    self.detailed_dialog.append({'T' : response})
 
   def update_memory(self, memory):
       self.memory = memory
+      self.detailed_dialog.append({'M' : memory})
 
   def get_tutor_instruction(self):
     return f'{self.tutor_persona}\n {self.dialog}\n {tutor_instruction(self.last_student_response, self.memory)}'

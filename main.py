@@ -2,10 +2,18 @@
 from log_callback_handler import NiceGuiLogElementCallbackHandler
 import asyncio
 from instructions import tutor_persona, slide_instruction
-from utils import Chat, Response, Slide, LLM
+from utils import Chat, Response, Slide, LLM, dump_chat
+from ruamel.yaml import YAML
 
 from nicegui import ui, context
 import os
+
+yaml = YAML()
+yaml.default_flow_style = False
+
+ui.add_head_html("""
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+""")
 
 @ui.page('/')
 def main():
@@ -15,7 +23,6 @@ def main():
 
     # Set the style for the entire page to change the background color
     ui.query('body').style(f'background-color: #f1efed')
-    # context.client.content.classes('h-[100vh]')
     context.client.content.classes('supports-[height:100cqh]:h-[100cqh] supports-[height:100svh]:h-[100svh]')
 
     async def send() -> None:
@@ -43,12 +50,13 @@ def main():
         memory_updated = await llm_handler.memory_response(instruction)
         chat.update_memory(memory_updated)
 
-        #print("\n\n MEMORY = ", memory_updated)
-
         # get tutor response
         instruction = chat.get_tutor_instruction()
         await llm_handler.tutor_response(instruction, response, message_container)
         message_container.remove(spinner)
+
+        # save tutor response in chat
+        chat.add_teacher_response(response.get_answer())
 
         # get slide response
         instruction = slide_instruction(chat.dialog, response.answer, slide.content)
@@ -57,6 +65,8 @@ def main():
         # set visibility right
         warning.visible = False
         slide.object.visible = True
+
+        print(chat.dialog)
 
     ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
     ui.query('.nicegui-content').classes('w-full')
@@ -70,7 +80,7 @@ def main():
             ui.image('media/foxy_header.png').classes('w-80')
 
     # body
-    with ui.row().classes('w-full h-[85%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
+    with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
             pass
 
@@ -82,15 +92,13 @@ def main():
                     - Schritt für Schritt durch das Thema gehen
                     - Alles so erklären, dass du es verstehst
                     ''').style('font-size: 2.5cqw')
-                slide.object.visible = True
+                slide.object.visible = False
 
                 warning = ui.markdown('''🚧 **Experimentelle Demoversion** 🚧<br />
                     Bitte beachten Sie, dass dies eine frühe Prototyp-Anwendung ist, die möglicherweise 
                     ungenaue Antworten liefert oder Inhalte erzeugt, die nicht für alle Zielgruppen 
-                    geeignet sind. Wir raten zur Vorsicht und raten Ihnen uns alle Probleme, die Sie 
-                    feststellen, mitzuteilen.
+                    geeignet sind. Wir raten zur Vorsicht und bitten Sie, uns eventuelle Probleme mitzuteilen.
                 ''').classes('w-full text-center m-8 lg:m-32').style('font-size: 2.5cqw')
-                warning.visible = False
 
         with ui.column().classes('w-full sm:w-[3%] h-auto sm:h-full'):
             pass
@@ -112,9 +120,10 @@ def main():
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3').props('color=orange-12') \
                     .classes('w-full self-center').style('font-size: 16px').on('keydown.enter', send)
 
-    # footer
-    with ui.row().classes('w-full h-0 sm:h-0 no-wrap bg-red'):
-        pass
+                ui.button('', on_click=lambda: ui.download(dump_chat(yaml, chat), 'chat.yaml')).props('outline round color=brown-5 icon=download text-color=brown-5 size=md').classes('self-center')
+
+    # with ui.footer(fixed=True).classes('h-[3%] sm:h-[4%] pt-1 sm:pt-2 bg-brown-2'):
+    #     ui.label('Impressum')
 
     # adjust font size in markdown fields so that it scales with whiteboard width
     ui.query('h1').style('font-size: 4cqw; font-weight: bold; margin: 0cqw 0;')
