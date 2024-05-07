@@ -25,6 +25,23 @@ def main():
     ui.query('body').style(f'background-color: #f1efed')
     context.client.content.classes('supports-[height:100cqh]:h-[100cqh] supports-[height:100svh]:h-[100svh]')
 
+    def change_language(button):
+        if chat.language == "german":
+            chat.language = "english"
+            button.text = "Switch to German"
+            chat.memory = "-The student needs assistant by the tutor"
+            llm_handler.tutor_model = ['openrouter', 'openai/gpt-4-turbo']
+        else: 
+            chat.language = "german"
+            button.text = "Switch to English"
+            chat.memory = "-Der Schüler braucht Hilfe vom Tutor"
+            llm_handler.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
+        chat.dialog = ""
+        text.value = ''
+        slide.set_content('')
+        message_container.clear()
+
+
     async def send() -> None:
         question = text.value
         text.value = ''
@@ -59,7 +76,7 @@ def main():
         chat.add_teacher_response(response.get_answer())
 
         # get slide response
-        instruction = slide_instruction(chat.dialog, response.answer, slide.content)
+        instruction = slide_instruction(chat.dialog, response.answer, slide.content, chat.language)
         await llm_handler.slide_response(instruction, slide)
 
         # set visibility right
@@ -77,8 +94,11 @@ def main():
             pass
 
         with ui.column().classes('w-[97%] h-full no-wrap'):
-            ui.image('media/foxy_header.png').classes('w-80')
-
+            with ui.row().classes('justify-between items-center w-full'):
+                ui.image('media/foxy_header.png').classes('w-80')
+                # Create the button with a reference to itself passed to the click function
+                switch_button = ui.button("Switch to English").classes('w-32 mr-16')
+                switch_button.on_click(lambda button=switch_button: change_language(button))
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):

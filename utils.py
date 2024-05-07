@@ -20,6 +20,7 @@ class Chat:
   def __init__(self, tutor_persona):
     self.tutor_persona = tutor_persona
     self.last_student_response = None
+    self.language = "german"
     self.dialog = ''
     self.memory = '-Der Schüler braucht Hilfe vom Tutor'
     self.detailed_dialog = []
@@ -38,10 +39,10 @@ class Chat:
       self.detailed_dialog.append({'M' : memory})
 
   def get_tutor_instruction(self):
-    return f'{self.tutor_persona}\n {self.dialog}\n {tutor_instruction(self.last_student_response, self.memory)}'
+    return f'{tutor_persona(self.language)}\n {self.dialog}\n {tutor_instruction(self.last_student_response, self.memory, self.language)}'
   
   def get_memory_instruction(self):
-      return memory_instruction(self.dialog, self.memory)
+      return memory_instruction(self.dialog, self.memory, self.language)
 
 class Response:
 
