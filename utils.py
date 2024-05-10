@@ -1,6 +1,11 @@
 from langchain_openai import OpenAI, ChatOpenAI
 from langchain_groq import  ChatGroq
 from instructions import tutor_persona, tutor_instruction, slide_instruction, memory_instruction
+from fauna import fql
+from fauna.client import Client
+from fauna.encoding import QuerySuccess
+from fauna.errors import FaunaException
+import json
 
 from nicegui import ui, context
 import os
@@ -8,6 +13,7 @@ import io
 
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
+FAUNA_KEY = os.environ["FAUNA_KEY"]
 
 def dump_chat(yaml, chat):
     # dump chat into YAML format
@@ -15,8 +21,46 @@ def dump_chat(yaml, chat):
     yaml.dump(chat.detailed_dialog, buf)
     return buf.getvalue()
 
-class Chat:
 
+class DB():
+    def __init__(self):
+        self.client = Client(secret=FAUNA_KEY)
+        self.item_id = None
+
+    def save_dialog(self, dialog, model, language):
+        dialog = json.dumps(dialog, ensure_ascii=False)
+        dialog = dialog.replace("\"", "")
+        dialog = dialog.replace("\n", "")
+        dialog = dialog.replace("\\", "")
+        if self.item_id is None:
+            self.create_item(dialog, model, language)
+        else:
+            self.update_item(dialog, model, language)
+
+    def create_item(self, dialog, model, language):
+        try:
+            query = fql("Dialogs.create({dialog: \""+dialog+"\", model:\""+model+"\", language:\""+language+"\"})")
+            res: QuerySuccess = self.client.query(query)
+            self.item_id = res.data.id 
+            print("Created DB entry with id: ", self.item_id)
+        except FaunaException as e:
+            print("Error while saving dialog to database")
+            print(e)
+            ui.notify('Data could not be saved to database', level='error')
+
+    def update_item(self,dialog, model, language):
+        try:
+            query = fql("Dialogs.byId(\""+self.item_id+"\")?.update({dialog: \""+dialog+"\", model:\""+model+"\", language:\""+language+"\"})")
+            res: QuerySuccess = self.client.query(query)
+            self.item_id = res.data.id 
+            print("Updated DB entry with id: ", self.item_id)
+        except FaunaException as e:
+            print("Error while saving dialog to database")
+            print(e)
+            ui.notify('Data could not be saved to database', level='error')
+
+
+class Chat:
   def __init__(self, tutor_persona):
     self.tutor_persona = tutor_persona
     self.last_student_response = None
@@ -24,6 +68,7 @@ class Chat:
     self.dialog = ''
     self.memory = '-Der Schüler braucht Hilfe vom Tutor'
     self.detailed_dialog = []
+    self.save_dialog = True
 
   def add_student_response(self, response):
     self.dialog += f'\n S: {response}'
@@ -85,8 +130,8 @@ class Slide:
 class LLM:
 
     def __init__(self):
-        self.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
-        self.memory_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']        
+        self.tutor_model = ['openrouter', 'openai/gpt-4-turbo']
+        self.memory_model = ['openrouter', 'openai/gpt-4-turbo']        
         self.slide_model = ['openrouter', 'anthropic/claude-3-opus']
 
 

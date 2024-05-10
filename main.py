@@ -2,7 +2,7 @@
 from log_callback_handler import NiceGuiLogElementCallbackHandler
 import asyncio
 from instructions import tutor_persona, slide_instruction
-from utils import Chat, Response, Slide, LLM, dump_chat
+from utils import Chat, Response, Slide, LLM, dump_chat, DB
 from ruamel.yaml import YAML
 
 from nicegui import ui, context
@@ -20,6 +20,7 @@ def main():
     chat = Chat(tutor_persona())
     slide = Slide()
     llm_handler = LLM()
+    db_handler = DB()
 
     # Set the style for the entire page to change the background color
     ui.query('body').style(f'background-color: #f1efed')
@@ -38,6 +39,7 @@ def main():
             chat.memory = "-The student needs assistant by the tutor"
             llm_handler.tutor_model = ['openrouter', 'openai/gpt-4-turbo']
         chat.dialog = ""
+        chat.detailed_dialog = []
         text.value = ''
         slide.set_content('')
         message_container.clear()
@@ -86,6 +88,10 @@ def main():
         warning.visible = False
         slide.object.visible = True
 
+        # save/update dialog in DB
+        if chat.save_dialog:
+            db_handler.save_dialog(chat.detailed_dialog, llm_handler.tutor_model[1], chat.language)
+
         print(chat.dialog)
 
     ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
@@ -112,11 +118,10 @@ def main():
         # Dropdown for selecting Model with the label to the left
         with ui.row().classes('items-center m-6'):
             ui.label('Model:').classes('mr-4 w-24').style('font-size: 1.3cqw')
-            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4-turbo'], value='mistralai/mixtral-8x22b-instruct').classes('flex-1 w-48')
+            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4-turbo'], value='openai/gpt-4-turbo').classes('flex-1 w-48')
 
         # Save button
         ui.button('Save', on_click=update_settings).classes('m-6')
-
 
 
     # header
@@ -180,5 +185,19 @@ def main():
     ui.query('h1').style('font-size: 4cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h2').style('font-size: 3.5cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h3').style('font-size: 3cqw; font-weight: bold; margin: 0cqw 0;')
+
+    def decline_save():
+        ui.notify("Der Dialog wird nicht aufgezeichnet!")
+        chat.save_dialog = False
+        dialog.close()  # Close the popup
+
+
+    with ui.dialog() as dialog, ui.card():
+        ui.label("Um unseren Tutor weiter zu verbessern, werden alle Dialogverläufe standardmäßig aufgezeichnet. Wenn Sie dies nicht möchten, klicken Sie bitte auf 'Dialog nicht aufzeichnen'.")
+        with ui.row().classes('w-full'):
+            ui.button('Okay', on_click=dialog.close)
+            ui.button('Dialog nicht aufzeichnen', on_click=decline_save)
+
+    dialog.open()
 
 ui.run(title='Foxy - an experimental AI tutor', favicon="favicon.ico", reload='FLY_ALLOC_ID' not in os.environ)
