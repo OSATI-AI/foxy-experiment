@@ -48,6 +48,16 @@ def main():
         # close side menu 
         toggle_menu(side_menu)
 
+    def toggle_menu(menu):
+        menu.visible = not menu.visible
+        language_select.value = chat.language
+        model_select.value = llm_handler.tutor_model[1]
+        
+    def decline_save():
+        ui.notify("Der Dialog wird nicht aufgezeichnet!")
+        chat.save_dialog = False
+        dialog.close()  # Close the popup
+
     async def send() -> None:
         question = text.value
         text.value = ''
@@ -95,16 +105,6 @@ def main():
 
         print(chat.dialog)
 
-    def toggle_menu(menu):
-        menu.visible = not menu.visible
-        language_select.value = chat.language
-        model_select.value = llm_handler.tutor_model[1]
-
-    def decline_save():
-        ui.notify("Der Dialog wird nicht aufgezeichnet!")
-        chat.save_dialog = False
-        dialog.close()  # Close the popup
-
     ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
     ui.query('.nicegui-content').classes('w-full')
 
@@ -125,7 +125,7 @@ def main():
         # Dropdown for selecting Model with the label to the left
         with ui.row().classes('items-center m-6'):
             ui.label('Model:').classes('mr-4 w-24').style('font-size: 1.3cqw')
-            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4-o'], value='openai/gpt-4-o').classes('flex-1 w-48')
+            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4o'], value='openai/gpt-4o').classes('flex-1 w-48')
 
         # Save button
         ui.button('Save', on_click=update_settings).classes('m-6')
