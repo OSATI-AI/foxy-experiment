@@ -21,17 +21,20 @@ def dump_chat(yaml, chat):
     yaml.dump(chat.detailed_dialog, buf)
     return buf.getvalue()
 
-
 class DB():
     def __init__(self):
         self.client = Client(secret=FAUNA_KEY)
         self.item_id = None
 
     def save_dialog(self, dialog, model, language):
+        # Remove line breaks
+        for e in dialog:
+            k = list(e.keys())[0]
+            e[k] = e[k].replace("\n", "")
         dialog = json.dumps(dialog, ensure_ascii=False)
-        dialog = dialog.replace("\"", "")
-        dialog = dialog.replace("\n", "")
+        dialog = dialog.replace('\"', "")
         dialog = dialog.replace("\\", "")
+
         if self.item_id is None:
             self.create_item(dialog, model, language)
         else:
@@ -58,7 +61,6 @@ class DB():
             print("Error while saving dialog to database")
             print(e)
             ui.notify('Data could not be saved to database', level='error')
-
 
 class Chat:
   def __init__(self, tutor_persona):
@@ -108,6 +110,7 @@ class Response:
         # remove unwanted characters
         answer = self.answer
         answer = answer.strip('TUTOR').strip(' :"')
+        answer.replace("**", "")
         return answer
 
     def get_thoughts(self):
@@ -130,9 +133,9 @@ class Slide:
 class LLM:
 
     def __init__(self):
-        self.tutor_model = ['openrouter', 'openai/gpt-4-turbo']
-        self.memory_model = ['openrouter', 'openai/gpt-4-turbo']        
-        self.slide_model = ['openrouter', 'anthropic/claude-3-opus']
+        self.tutor_model = ['openrouter', 'openai/gpt-4o']
+        self.memory_model = ['openrouter', 'openai/gpt-4o']        
+        self.slide_model = ['openrouter', 'openai/gpt-4o']
 
 
     async def memory_response(self,instruction):
@@ -159,7 +162,7 @@ class LLM:
             if 'TUTOR:' in response.response:
                 response.container.clear()
                 with response.container:
-                    ui.html(response.get_answer())
+                    ui.html(response.get_answer().replace("\"", ""))
 
             message_container.scroll_to(percent=100)
 

@@ -1,10 +1,7 @@
 #!/usr/bin/env python3
-from log_callback_handler import NiceGuiLogElementCallbackHandler
-import asyncio
 from instructions import tutor_persona, slide_instruction
 from utils import Chat, Response, Slide, LLM, dump_chat, DB
 from ruamel.yaml import YAML
-
 from nicegui import ui, context
 import os
 
@@ -27,25 +24,29 @@ def main():
     context.client.content.classes('supports-[height:100cqh]:h-[100cqh] supports-[height:100svh]:h-[100svh]')
 
     def update_settings():
+        # apply changes to language and model
         language = language_select.value
         model = model_select.value
         model = ['openrouter', model]
         chat.language = language
         llm_handler.tutor_model = model
 
+        # reset memory and set initial entry in according language
         if language == "german":
             chat.memory = "-Der Schüler braucht Hilfe vom Tutor"
         elif language == "english":
             chat.memory = "-The student needs assistant by the tutor"
-            llm_handler.tutor_model = ['openrouter', 'openai/gpt-4-turbo']
+        
+        # reset dialog history and clear ui elements
         chat.dialog = ""
         chat.detailed_dialog = []
         text.value = ''
         slide.set_content('')
         message_container.clear()
         ui.notify('Settings saved', level='success')
+        
+        # close side menu 
         toggle_menu(side_menu)
-
 
     async def send() -> None:
         question = text.value
@@ -94,17 +95,23 @@ def main():
 
         print(chat.dialog)
 
-    ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
-    ui.query('.nicegui-content').classes('w-full')
-
     def toggle_menu(menu):
         menu.visible = not menu.visible
         language_select.value = chat.language
         model_select.value = llm_handler.tutor_model[1]
 
+    def decline_save():
+        ui.notify("Der Dialog wird nicht aufgezeichnet!")
+        chat.save_dialog = False
+        dialog.close()  # Close the popup
+
+    ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
+    ui.query('.nicegui-content').classes('w-full')
+
     # Create a side menu initially hidden
     side_menu = ui.column().classes('fixed top-0 right-0 w-[25%] h-full bg-white shadow-lg z-50')
     side_menu.visible = False
+    
     # Add content to the side menu
     with side_menu:
         with ui.row().classes('justify-between items-center w-full'):
@@ -118,11 +125,10 @@ def main():
         # Dropdown for selecting Model with the label to the left
         with ui.row().classes('items-center m-6'):
             ui.label('Model:').classes('mr-4 w-24').style('font-size: 1.3cqw')
-            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4-turbo'], value='openai/gpt-4-turbo').classes('flex-1 w-48')
+            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4-o'], value='openai/gpt-4-o').classes('flex-1 w-48')
 
         # Save button
         ui.button('Save', on_click=update_settings).classes('m-6')
-
 
     # header
     with ui.row().classes('w-full h-[10%] no-wrap'):
@@ -132,9 +138,8 @@ def main():
         with ui.column().classes('w-[97%] h-full no-wrap'):
             with ui.row().classes('justify-between items-center w-full'):
                 ui.image('media/foxy_header.png').classes('w-80')
-                # Create the button with a reference to itself passed to the click function
-                # Add hamburger menu button
-                hamburger_button = ui.button('', icon='menu', on_click=lambda: toggle_menu(side_menu)).classes('icon-large mr-16')
+                # hamburger menu button to open side menu
+                ui.button('', icon='menu', on_click=lambda: toggle_menu(side_menu)).classes('icon-large mr-16')
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
@@ -186,12 +191,8 @@ def main():
     ui.query('h2').style('font-size: 3.5cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h3').style('font-size: 3cqw; font-weight: bold; margin: 0cqw 0;')
 
-    def decline_save():
-        ui.notify("Der Dialog wird nicht aufgezeichnet!")
-        chat.save_dialog = False
-        dialog.close()  # Close the popup
-
-
+    
+    # Popup Dialog informing user that dialog is recorded and give choice to decline
     with ui.dialog() as dialog, ui.card():
         ui.label("Um unseren Tutor weiter zu verbessern, werden alle Dialogverläufe standardmäßig aufgezeichnet. Wenn Sie dies nicht möchten, klicken Sie bitte auf 'Dialog nicht aufzeichnen'.")
         with ui.row().classes('w-full'):

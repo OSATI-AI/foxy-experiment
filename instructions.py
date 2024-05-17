@@ -280,7 +280,8 @@ def slide_instruction(dialog, thoughts_teacher, bullet_points, language='german'
             - Atombombenabwurf der USA auf Japan am 6.8. und 9.8. auf Hiroshima und Nagasaki
             - 2.9. Ende des 2. Weltkrieges
 
-            Gehe nun Schritt für Schritt vor und orientiere dich an den Beispielen.
+            Gehe nun Schritt für Schritt vor und orientiere dich an den Beispielen. Stelle sicher, dass Du nur Informationen
+            darstellst, die in der Antwort des Tutors enthalten sind und füge keine neuen Informationen hinzu.
 
             ANALYSIS: 
             STRATEGY: 
@@ -343,7 +344,8 @@ def slide_instruction(dialog, thoughts_teacher, bullet_points, language='german'
             - Atomic bombs dropped by the USA on Japan on August 6 and August 9 on Hiroshima and Nagasaki
             - 2.9. end of the 2nd World War
 
-            Now proceed step by step and use the examples as a guide.
+            Now proceed step by step and use the examples as a guide. Make sure that you only include information
+            that is contained in the tutor's answer and do not add any new information.
 
             ANALYSIS: 
             STRATEGY: 
