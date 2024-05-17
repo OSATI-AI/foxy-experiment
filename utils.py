@@ -86,9 +86,9 @@ class LLM:
     def __init__(self):
         # self.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
         # self.memory_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
-        self.tutor_model = ['openrouter', 'openai/gpt-4-turbo']
-        self.memory_model = ['openrouter', 'openai/gpt-4-turbo']
-        self.slide_model = ['openrouter', 'anthropic/claude-3-opus']
+        self.tutor_model = ['openrouter', 'openai/gpt-4o']
+        self.memory_model = ['openrouter', 'openai/gpt-4o']
+        self.slide_model = ['openrouter', 'openai/gpt-4o']
 
 
     async def memory_response(self,instruction):
