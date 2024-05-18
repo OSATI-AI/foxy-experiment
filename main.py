@@ -35,7 +35,7 @@ def main():
         if language == "german":
             chat.memory = "-Der Schüler braucht Hilfe vom Tutor"
         elif language == "english":
-            chat.memory = "-The student needs assistant by the tutor"
+            chat.memory = "-The student needs assistance by the tutor"
         
         # reset dialog history and clear ui elements
         chat.dialog = ""
@@ -103,32 +103,25 @@ def main():
         if chat.save_dialog:
             db_handler.save_dialog(chat.detailed_dialog, llm_handler.tutor_model[1], chat.language)
 
-        print(chat.dialog)
-
     ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
     ui.query('.nicegui-content').classes('w-full')
-
-    # Create a side menu initially hidden
-    side_menu = ui.column().classes('fixed top-0 right-0 w-[25%] h-full bg-white shadow-lg z-50')
-    side_menu.visible = False
     
-    # Add content to the side menu
-    with side_menu:
-        with ui.row().classes('justify-between items-center w-full'):
-            ui.label("Options ").classes('m-6').style('font-size: 1.8cqw')
-            ui.button('', icon='close', on_click=lambda: toggle_menu(side_menu)).classes('icon-large m-2')
-        # Dropdown for selecting Language
-        with ui.row().classes('items-center m-6'):
-            ui.label('Language:').classes('mr-4 w-24').style('font-size: 1.3cqw')
+    # Popup Dialog for Settings
+    with ui.dialog() as settings, ui.card():
+        ui.label("Settings")
+
+        # Dropdown for selecting the language
+        with ui.row().classes('w-full'):
+            ui.label('Language:').classes('mr-4 w-24').style('font-size: 2.5cqw')
             language_select = ui.select(['english', 'german'], value="german").classes('flex-1 w-48')
 
         # Dropdown for selecting Model with the label to the left
         with ui.row().classes('items-center m-6'):
-            ui.label('Model:').classes('mr-4 w-24').style('font-size: 1.3cqw')
+            ui.label('Model:').classes('mr-4 w-24').style('font-size: 2.5cqw')
             model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4o'], value='openai/gpt-4o').classes('flex-1 w-48')
 
         # Save button
-        ui.button('Save', on_click=update_settings).classes('m-6')
+        ui.button('Save', on_click=update_settings and settings.close).classes('m-6')
 
     # header
     with ui.row().classes('w-full h-[10%] no-wrap'):
@@ -139,7 +132,7 @@ def main():
             with ui.row().classes('justify-between items-center w-full'):
                 ui.image('media/foxy_header.png').classes('w-80')
                 # hamburger menu button to open side menu
-                ui.button('', icon='menu', on_click=lambda: toggle_menu(side_menu)).classes('icon-large mr-16')
+                ui.button('', icon='menu', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')#.classes('icon-large mr-16')
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
