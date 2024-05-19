@@ -112,16 +112,16 @@ def main():
 
         # Dropdown for selecting the language
         with ui.row().classes('w-full'):
-            ui.label('Language:').classes('mr-4 w-24').style('font-size: 2.5cqw')
+            ui.label('Language:').classes('mr-4 w-24').style('font-size: 1.5cqw')
             language_select = ui.select(['english', 'german'], value="german").classes('flex-1 w-48')
 
         # Dropdown for selecting Model with the label to the left
         with ui.row().classes('items-center m-6'):
-            ui.label('Model:').classes('mr-4 w-24').style('font-size: 2.5cqw')
+            ui.label('Model:').classes('mr-4 w-24').style('font-size: 1.5cqw')
             model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4o'], value='openai/gpt-4o').classes('flex-1 w-48')
 
         # Save button
-        ui.button('Save', on_click=update_settings and settings.close).classes('m-6')
+        ui.button('Save', on_click=update_settings and settings.close).classes('m-6').props('unelevated rounded color=brown-5 text-color=white size=md')
 
     # header
     with ui.row().classes('w-full h-[10%] no-wrap'):
@@ -132,7 +132,7 @@ def main():
             with ui.row().classes('justify-between items-center w-full'):
                 ui.image('media/foxy_header.png').classes('w-80')
                 # hamburger menu button to open side menu
-                ui.button('', icon='menu', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')#.classes('icon-large mr-16')
+                ui.button('', icon='menu', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
@@ -189,8 +189,8 @@ def main():
     with ui.dialog() as dialog, ui.card():
         ui.label("Um unseren Tutor weiter zu verbessern, werden alle Dialogverläufe standardmäßig aufgezeichnet. Wenn Sie dies nicht möchten, klicken Sie bitte auf 'Dialog nicht aufzeichnen'.")
         with ui.row().classes('w-full'):
-            ui.button('Okay', on_click=dialog.close)
-            ui.button('Dialog nicht aufzeichnen', on_click=decline_save)
+            ui.button('Okay', on_click=dialog.close).props('unelevated rounded color=brown-5 text-color=white size=md')
+            ui.button('Dialog nicht aufzeichnen', on_click=decline_save).props('unelevated rounded color=brown-5 text-color=white size=md')
 
     dialog.open()
 
