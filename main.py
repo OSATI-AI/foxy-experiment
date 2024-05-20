@@ -107,21 +107,27 @@ def main():
     ui.query('.nicegui-content').classes('w-full')
     
     # Popup Dialog for Settings
-    with ui.dialog() as settings, ui.card():
-        ui.label("Settings")
+    with ui.dialog() as settings, ui.card().classes('w-[21rem] h-64'):
+        ui.label("Settings").classes('text-xl font-bold')
 
         # Dropdown for selecting the language
         with ui.row().classes('w-full'):
-            ui.label('Language:').classes('mr-4 w-24').style('font-size: 1.5cqw')
-            language_select = ui.select(['english', 'german'], value="german").classes('flex-1 w-48')
+            with ui.column().classes('w-[6rem]'):
+                ui.label('Language:').classes('mt-5')
+
+            with ui.column().classes('w-[12rem]'):
+                language_select = ui.select(['english', 'german'], value="german").classes('w-[12rem]')
 
         # Dropdown for selecting Model with the label to the left
-        with ui.row().classes('items-center m-6'):
-            ui.label('Model:').classes('mr-4 w-24').style('font-size: 1.5cqw')
-            model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4o'], value='openai/gpt-4o').classes('flex-1 w-48')
+        with ui.row().classes('w-full'):
+            with ui.column().classes('w-[6rem]'):
+                ui.label('Model:').classes('mt-5')
+
+            with ui.column().classes('w-[12rem]'):
+                model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4o'], value='openai/gpt-4o').classes('w-[12rem]')
 
         # Save button
-        ui.button('Save', on_click=update_settings and settings.close).classes('m-6').props('unelevated rounded color=brown-5 text-color=white size=md')
+        ui.button('Save', on_click=update_settings and settings.close).props('unelevated rounded color=brown-5 text-color=white size=md')
 
     # header
     with ui.row().classes('w-full h-[10%] no-wrap'):
@@ -131,8 +137,8 @@ def main():
         with ui.column().classes('w-[97%] h-full no-wrap'):
             with ui.row().classes('justify-between items-center w-full'):
                 ui.image('media/foxy_header.png').classes('w-80')
-                # hamburger menu button to open side menu
-                ui.button('', icon='menu', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')
+                # settings button
+                ui.button('', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
@@ -183,7 +189,6 @@ def main():
     ui.query('h1').style('font-size: 4cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h2').style('font-size: 3.5cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h3').style('font-size: 3cqw; font-weight: bold; margin: 0cqw 0;')
-
     
     # Popup Dialog informing user that dialog is recorded and give choice to decline
     with ui.dialog() as dialog, ui.card():
