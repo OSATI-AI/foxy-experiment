@@ -182,9 +182,13 @@ def main():
 
                 ui.button('', on_click=lambda: ui.download(dump_chat(yaml, chat), 'chat.yaml')).props('outline round color=brown-5 icon=download text-color=brown-5 size=md').classes('self-center')
 
-    # with ui.footer(fixed=True).classes('h-[3%] sm:h-[4%] pt-1 sm:pt-2 bg-brown-2'):
-    #     ui.label('Impressum')
+    with ui.footer(fixed=True).classes('h-[6%] sm:h-[4%] pt-1 sm:pt-2 bg-brown-2'):
+        with ui.row().classes('w-full h-[6%] no-wrap'):
+            #ui.label('Impressum')
+            ui.link('Impressum', "imprint").classes(replace='text-lg text-white mb-4') 
+            ui.link('Privacy Policy', "privacy").classes(replace='text-lg text-white mb-4')
 
+            
     # adjust font size in markdown fields so that it scales with whiteboard width
     ui.query('h1').style('font-size: 4cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h2').style('font-size: 3.5cqw; font-weight: bold; margin: 0cqw 0;')
@@ -196,6 +200,15 @@ def main():
         with ui.row().classes('w-full'):
             ui.button('Okay', on_click=dialog.close).props('unelevated rounded color=brown-5 text-color=white size=md')
             ui.button('Dialog nicht aufzeichnen', on_click=decline_save).props('unelevated rounded color=brown-5 text-color=white size=md')
+
+
+    @ui.page('/imprint')
+    def imprint():
+        ui.markdown('##Impressum')
+
+    @ui.page('/privacy')
+    def imprint():
+        ui.markdown('##Privacy Policy')
 
     dialog.open()
 
