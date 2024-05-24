@@ -3,6 +3,8 @@ from instructions import tutor_persona, slide_instruction
 from utils import Chat, Response, Slide, LLM, dump_chat, DB
 from ruamel.yaml import YAML
 from nicegui import ui, context
+from impressum import impressum
+from privacy import privacy
 import os
 
 yaml = YAML()
@@ -139,6 +141,7 @@ def main():
                 ui.image('media/foxy_header.png').classes('w-80')
                 # settings button
                 ui.button('', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')
+
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
         with ui.column().classes('w-[1%] sm:w-[3%] h-[1%] sm:h-full -mb-4 sm:m-0'):
@@ -176,17 +179,17 @@ def main():
 
         with ui.column().classes('w-full sm:w-[40%] -mt-4 sm:mt-0 h-full justify-center'):
             with ui.row().classes('w-full sm:w-[90%] h-[10%] no-wrap'):
-                placeholder = 'message - do not share personal information!'
+                placeholder = 'Nachricht - bitte gib keine persönlichen Daten ein!'
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3').props('color=orange-12') \
                     .classes('w-full self-center').style('font-size: 16px').on('keydown.enter', send)
 
                 ui.button('', on_click=lambda: ui.download(dump_chat(yaml, chat), 'chat.yaml')).props('outline round color=brown-5 icon=download text-color=brown-5 size=md').classes('self-center')
 
-    with ui.footer(fixed=True).classes('h-[6%] sm:h-[4%] pt-1 sm:pt-2 bg-brown-2'):
-        with ui.row().classes('w-full h-[6%] no-wrap'):
+    with ui.footer(fixed=True).classes('h-[3%] pt-1 bg-brown-2'):
+        with ui.row().classes('w-full h-[3%] no-wrap'):
             #ui.label('Impressum')
-            ui.link('Impressum', "imprint").classes(replace='text-lg text-white mb-4') 
-            ui.link('Privacy Policy', "privacy").classes(replace='text-lg text-white mb-4')
+            ui.link('Impressum', "impressum").classes(replace='text-xs text-white mb-3') 
+            ui.link('Privacy Policy', "privacy").classes(replace='text-xs text-white mb-3')
 
             
     # adjust font size in markdown fields so that it scales with whiteboard width
@@ -200,15 +203,6 @@ def main():
         with ui.row().classes('w-full'):
             ui.button('Okay', on_click=dialog.close).props('unelevated rounded color=brown-5 text-color=white size=md')
             ui.button('Dialog nicht aufzeichnen', on_click=decline_save).props('unelevated rounded color=brown-5 text-color=white size=md')
-
-
-    @ui.page('/imprint')
-    def imprint():
-        ui.markdown('##Impressum')
-
-    @ui.page('/privacy')
-    def imprint():
-        ui.markdown('##Privacy Policy')
 
     dialog.open()
 
