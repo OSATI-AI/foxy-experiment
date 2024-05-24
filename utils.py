@@ -1,6 +1,11 @@
 from langchain_openai import OpenAI, ChatOpenAI
 from langchain_groq import  ChatGroq
 from instructions import tutor_persona, tutor_instruction, slide_instruction, memory_instruction
+from fauna import fql
+from fauna.client import Client
+from fauna.encoding import QuerySuccess
+from fauna.errors import FaunaException
+import json
 
 from nicegui import ui, context
 import os
@@ -8,6 +13,7 @@ import io
 
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 OPENROUTER_API_KEY = os.environ["OPENROUTER_API_KEY"]
+FAUNA_KEY = os.environ["FAUNA_KEY"]
 
 def dump_chat(yaml, chat):
     # dump chat into YAML format
@@ -15,14 +21,56 @@ def dump_chat(yaml, chat):
     yaml.dump(chat.detailed_dialog, buf)
     return buf.getvalue()
 
-class Chat:
+class DB():
+    def __init__(self):
+        self.client = Client(secret=FAUNA_KEY)
+        self.item_id = None
 
+    def save_dialog(self, dialog, model, language):
+        # Remove line breaks
+        for e in dialog:
+            k = list(e.keys())[0]
+            e[k] = e[k].replace("\n", "")
+        dialog = json.dumps(dialog, ensure_ascii=False)
+        dialog = dialog.replace('\"', "")
+        dialog = dialog.replace("\\", "")
+
+        if self.item_id is None:
+            self.create_item(dialog, model, language)
+        else:
+            self.update_item(dialog, model, language)
+
+    def create_item(self, dialog, model, language):
+        try:
+            query = fql("Dialogs.create({dialog: \""+dialog+"\", model:\""+model+"\", language:\""+language+"\"})")
+            res: QuerySuccess = self.client.query(query)
+            self.item_id = res.data.id 
+            print("Created DB entry with id: ", self.item_id)
+        except FaunaException as e:
+            print("Error while saving dialog to database")
+            print(e)
+            ui.notify('Data could not be saved to database', level='error')
+
+    def update_item(self,dialog, model, language):
+        try:
+            query = fql("Dialogs.byId(\""+self.item_id+"\")?.update({dialog: \""+dialog+"\", model:\""+model+"\", language:\""+language+"\"})")
+            res: QuerySuccess = self.client.query(query)
+            self.item_id = res.data.id 
+            print("Updated DB entry with id: ", self.item_id)
+        except FaunaException as e:
+            print("Error while saving dialog to database")
+            print(e)
+            ui.notify('Data could not be saved to database', level='error')
+
+class Chat:
   def __init__(self, tutor_persona):
     self.tutor_persona = tutor_persona
     self.last_student_response = None
+    self.language = "german"
     self.dialog = ''
     self.memory = '-Der Schüler braucht Hilfe vom Tutor'
     self.detailed_dialog = []
+    self.save_dialog = True
 
   def add_student_response(self, response):
     self.dialog += f'\n S: {response}'
@@ -38,10 +86,10 @@ class Chat:
       self.detailed_dialog.append({'M' : memory})
 
   def get_tutor_instruction(self):
-    return f'{self.tutor_persona}\n {self.dialog}\n {tutor_instruction(self.last_student_response, self.memory)}'
+    return f'{tutor_persona(self.language)}\n {self.dialog}\n {tutor_instruction(self.last_student_response, self.memory, self.language)}'
   
   def get_memory_instruction(self):
-      return memory_instruction(self.dialog, self.memory)
+      return memory_instruction(self.dialog, self.memory, self.language)
 
 class Response:
 
@@ -62,6 +110,7 @@ class Response:
         # remove unwanted characters
         answer = self.answer
         answer = answer.strip('TUTOR').strip(' :"')
+        answer.replace("**", "")
         return answer
 
     def get_thoughts(self):
@@ -84,10 +133,8 @@ class Slide:
 class LLM:
 
     def __init__(self):
-        # self.tutor_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
-        # self.memory_model = ['openrouter', 'mistralai/mixtral-8x22b-instruct']
         self.tutor_model = ['openrouter', 'openai/gpt-4o']
-        self.memory_model = ['openrouter', 'openai/gpt-4o']
+        self.memory_model = ['openrouter', 'openai/gpt-4o']        
         self.slide_model = ['openrouter', 'openai/gpt-4o']
 
 
@@ -115,7 +162,7 @@ class LLM:
             if 'TUTOR:' in response.response:
                 response.container.clear()
                 with response.container:
-                    ui.html(response.get_answer())
+                    ui.html(response.get_answer().replace("\"", ""))
 
             message_container.scroll_to(percent=100)
 

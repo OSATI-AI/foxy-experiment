@@ -1,11 +1,10 @@
 #!/usr/bin/env python3
-from log_callback_handler import NiceGuiLogElementCallbackHandler
-import asyncio
 from instructions import tutor_persona, slide_instruction
-from utils import Chat, Response, Slide, LLM, dump_chat
+from utils import Chat, Response, Slide, LLM, dump_chat, DB
 from ruamel.yaml import YAML
-
 from nicegui import ui, context
+from impressum import impressum
+from privacy import privacy
 import os
 
 yaml = YAML()
@@ -20,10 +19,46 @@ def main():
     chat = Chat(tutor_persona())
     slide = Slide()
     llm_handler = LLM()
+    db_handler = DB()
 
     # Set the style for the entire page to change the background color
     ui.query('body').style(f'background-color: #f1efed')
     context.client.content.classes('supports-[height:100cqh]:h-[100cqh] supports-[height:100svh]:h-[100svh]')
+
+    def update_settings():
+        # apply changes to language and model
+        language = language_select.value
+        model = model_select.value
+        model = ['openrouter', model]
+        chat.language = language
+        llm_handler.tutor_model = model
+
+        # reset memory and set initial entry in according language
+        if language == "german":
+            chat.memory = "-Der Schüler braucht Hilfe vom Tutor"
+        elif language == "english":
+            chat.memory = "-The student needs assistance by the tutor"
+        
+        # reset dialog history and clear ui elements
+        chat.dialog = ""
+        chat.detailed_dialog = []
+        text.value = ''
+        slide.set_content('')
+        message_container.clear()
+        ui.notify('Settings saved', level='success')
+        
+        # close side menu 
+        toggle_menu(side_menu)
+
+    def toggle_menu(menu):
+        menu.visible = not menu.visible
+        language_select.value = chat.language
+        model_select.value = llm_handler.tutor_model[1]
+        
+    def decline_save():
+        ui.notify("Der Dialog wird nicht aufgezeichnet!")
+        chat.save_dialog = False
+        dialog.close()  # Close the popup
 
     async def send() -> None:
         question = text.value
@@ -59,17 +94,42 @@ def main():
         chat.add_teacher_response(response.get_answer())
 
         # get slide response
-        instruction = slide_instruction(chat.dialog, response.answer, slide.content)
+        instruction = slide_instruction(chat.dialog, response.answer, slide.content, chat.language)
         await llm_handler.slide_response(instruction, slide)
 
         # set visibility right
         warning.visible = False
         slide.object.visible = True
 
-        print(chat.dialog)
+        # save/update dialog in DB
+        if chat.save_dialog:
+            db_handler.save_dialog(chat.detailed_dialog, llm_handler.tutor_model[1], chat.language)
 
     ui.add_css(r'a:link, a:visited {color: inherit !important; text-decoration: none; font-weight: 500}')
     ui.query('.nicegui-content').classes('w-full')
+    
+    # Popup Dialog for Settings
+    with ui.dialog() as settings, ui.card().classes('w-[21rem] h-64'):
+        ui.label("Settings").classes('text-xl font-bold')
+
+        # Dropdown for selecting the language
+        with ui.row().classes('w-full'):
+            with ui.column().classes('w-[6rem]'):
+                ui.label('Language:').classes('mt-5')
+
+            with ui.column().classes('w-[12rem]'):
+                language_select = ui.select(['english', 'german'], value="german").classes('w-[12rem]')
+
+        # Dropdown for selecting Model with the label to the left
+        with ui.row().classes('w-full'):
+            with ui.column().classes('w-[6rem]'):
+                ui.label('Model:').classes('mt-5')
+
+            with ui.column().classes('w-[12rem]'):
+                model_select = ui.select(['mistralai/mixtral-8x22b-instruct', 'meta-llama/llama-3-70b-instruct', 'openai/gpt-4o'], value='openai/gpt-4o').classes('w-[12rem]')
+
+        # Save button
+        ui.button('Save', on_click=update_settings and settings.close).props('unelevated rounded color=brown-5 text-color=white size=md')
 
     # header
     with ui.row().classes('w-full h-[10%] no-wrap'):
@@ -77,7 +137,10 @@ def main():
             pass
 
         with ui.column().classes('w-[97%] h-full no-wrap'):
-            ui.image('media/foxy_header.png').classes('w-80')
+            with ui.row().classes('justify-between items-center w-full'):
+                ui.image('media/foxy_header.png').classes('w-80')
+                # settings button
+                ui.button('', on_click=lambda: settings.open()).props('outline round color=brown-5 icon=settings text-color=brown-5 size=md')
 
     # body
     with ui.row().classes('w-full h-[77%] sm:h-[75%] flex flex-col sm:flex-row no-wrap'):
@@ -116,18 +179,31 @@ def main():
 
         with ui.column().classes('w-full sm:w-[40%] -mt-4 sm:mt-0 h-full justify-center'):
             with ui.row().classes('w-full sm:w-[90%] h-[10%] no-wrap'):
-                placeholder = 'message - do not share personal information!'
+                placeholder = 'Nachricht - bitte gib keine persönlichen Daten ein!'
                 text = ui.input(placeholder=placeholder).props('rounded outlined input-class=mx-3').props('color=orange-12') \
                     .classes('w-full self-center').style('font-size: 16px').on('keydown.enter', send)
 
                 ui.button('', on_click=lambda: ui.download(dump_chat(yaml, chat), 'chat.yaml')).props('outline round color=brown-5 icon=download text-color=brown-5 size=md').classes('self-center')
 
-    # with ui.footer(fixed=True).classes('h-[3%] sm:h-[4%] pt-1 sm:pt-2 bg-brown-2'):
-    #     ui.label('Impressum')
+    with ui.footer(fixed=True).classes('h-[3%] pt-1 bg-brown-2'):
+        with ui.row().classes('w-full h-[3%] no-wrap'):
+            #ui.label('Impressum')
+            ui.link('Impressum', "impressum").classes(replace='text-xs text-white mb-3') 
+            ui.link('Privacy Policy', "privacy").classes(replace='text-xs text-white mb-3')
 
+            
     # adjust font size in markdown fields so that it scales with whiteboard width
     ui.query('h1').style('font-size: 4cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h2').style('font-size: 3.5cqw; font-weight: bold; margin: 0cqw 0;')
     ui.query('h3').style('font-size: 3cqw; font-weight: bold; margin: 0cqw 0;')
+    
+    # Popup Dialog informing user that dialog is recorded and give choice to decline
+    with ui.dialog() as dialog, ui.card():
+        ui.label("Um unseren Tutor weiter zu verbessern, werden alle Dialogverläufe standardmäßig aufgezeichnet. Wenn Sie dies nicht möchten, klicken Sie bitte auf 'Dialog nicht aufzeichnen'.")
+        with ui.row().classes('w-full'):
+            ui.button('Okay', on_click=dialog.close).props('unelevated rounded color=brown-5 text-color=white size=md')
+            ui.button('Dialog nicht aufzeichnen', on_click=decline_save).props('unelevated rounded color=brown-5 text-color=white size=md')
+
+    dialog.open()
 
 ui.run(title='Foxy - an experimental AI tutor', favicon="favicon.ico", reload='FLY_ALLOC_ID' not in os.environ)
